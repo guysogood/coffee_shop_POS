@@ -18,14 +18,14 @@ interface ProductGridProps {
 }
 
 const getProductIcon = (name: string) => {
-  const iconProps = { className: "w-6 h-6 mb-2" };
+  const iconProps = { className: "w-8 h-8 mb-2" };
   const lowerName = name.toLowerCase();
   
   if (lowerName.includes("americano") || lowerName.includes("coffee")) return <Coffee {...iconProps} />;
   if (lowerName.includes("cookie")) return <Cookie {...iconProps} />;
   if (lowerName.includes("croissant")) return <Croissant {...iconProps} />;
   if (lowerName.includes("cappuccino")) return <CupSoda {...iconProps} />;
-  if (lowerName.includes("bagel")) return <Pizza {...iconProps} />; // Changed from Bagel to Pizza
+  if (lowerName.includes("bagel")) return <Pizza {...iconProps} />; 
   if (lowerName.includes("muffin")) return <Candy {...iconProps} />;
   
   return <Coffee {...iconProps} />; // Default icon
@@ -43,7 +43,15 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
         .order("name");
       
       if (error) throw error;
-      return data as Product[];
+      // Remove duplicates based on product name
+      const uniqueProducts = data.reduce((acc: Product[], current) => {
+        const exists = acc.find(item => item.name === current.name);
+        if (!exists) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      return uniqueProducts as Product[];
     },
   });
 

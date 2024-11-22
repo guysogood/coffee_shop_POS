@@ -37,7 +37,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                   <div className="flex-grow">
                     <h4 className="font-medium">{item.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      ${item.price.toFixed(2)} × {item.quantity}
+                      ${(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -45,7 +45,6 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                       variant="outline"
                       size="icon"
                       onClick={() => onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))}
-                      disabled={item.quantity <= 1}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>

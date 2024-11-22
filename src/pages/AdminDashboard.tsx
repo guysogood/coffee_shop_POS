@@ -68,7 +68,7 @@ const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <h1 className="text-xl font-bold">Admin Dashboard</h1>
           </div>
           <Button
             variant="ghost"
@@ -83,8 +83,8 @@ const AdminDashboard = () => {
         </div>
       </div>
       
-      <div className="max-w-7xl mx-auto p-6">
-        <Tabs defaultValue="overview" className="space-y-6">
+      <div className="max-w-7xl mx-auto p-4">
+        <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
@@ -101,7 +101,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
-            <Card className="p-6">
+            <Card className="p-4">
               <SalesReport />
             </Card>
           </TabsContent>
