@@ -9,11 +9,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { ProductForm } from "./product/ProductForm";
+import { ProductCard } from "./product/ProductCard";
 
 interface Product {
   id: string;
@@ -28,12 +27,6 @@ export function ProductManagement() {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    stock: "",
-  });
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -60,7 +53,6 @@ export function ProductManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsAddDialogOpen(false);
-      resetForm();
       toast({
         title: "Product added",
         description: "The product has been added successfully.",
@@ -94,7 +86,6 @@ export function ProductManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setEditingProduct(null);
-      resetForm();
       toast({
         title: "Product updated",
         description: "The product has been updated successfully.",
@@ -130,17 +121,7 @@ export function ProductManagement() {
     },
   });
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      price: "",
-      stock: "",
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (formData: any) => {
     const productData = {
       name: formData.name,
       description: formData.description || null,
@@ -172,112 +153,21 @@ export function ProductManagement() {
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="stock">Stock</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  value={formData.stock}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stock: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Add Product
-              </Button>
-            </form>
+            <ProductForm onSubmit={handleSubmit} submitLabel="Add Product" />
           </DialogContent>
         </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {products?.map((product) => (
-          <div
+          <ProductCard
             key={product.id}
-            className="p-4 border rounded-lg shadow-sm space-y-2"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold">{product.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {product.description}
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setEditingProduct(product);
-                    setFormData({
-                      name: product.name,
-                      description: product.description || "",
-                      price: product.price.toString(),
-                      stock: product.stock.toString(),
-                    });
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete this product?"
-                      )
-                    ) {
-                      deleteProductMutation.mutate(product.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>${product.price.toFixed(2)}</span>
-              <span>Stock: {product.stock}</span>
-            </div>
-          </div>
+            product={product}
+            onEdit={(product) => {
+              setEditingProduct(product);
+            }}
+            onDelete={(id) => deleteProductMutation.mutate(id)}
+          />
         ))}
       </div>
 
@@ -287,57 +177,16 @@ export function ProductManagement() {
             <DialogHeader>
               <DialogTitle>Edit Product</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="edit-name">Name</Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-price">Price</Label>
-                <Input
-                  id="edit-price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-stock">Stock</Label>
-                <Input
-                  id="edit-stock"
-                  type="number"
-                  value={formData.stock}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stock: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Update Product
-              </Button>
-            </form>
+            <ProductForm
+              initialData={{
+                name: editingProduct.name,
+                description: editingProduct.description || "",
+                price: editingProduct.price.toString(),
+                stock: editingProduct.stock.toString(),
+              }}
+              onSubmit={handleSubmit}
+              submitLabel="Update Product"
+            />
           </DialogContent>
         </Dialog>
       )}
