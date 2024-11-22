@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Login = () => {
   const createInitialUsers = async () => {
     try {
       // Create admin user
-      const { error: adminError } = await supabase.auth.signUp({
+      const { data: adminData, error: adminError } = await supabase.auth.signUp({
         email: 'admin@test.com',
         password: 'admin123',
         options: {
@@ -29,7 +30,7 @@ const Login = () => {
       if (adminError) throw adminError;
 
       // Create staff user
-      const { error: staffError } = await supabase.auth.signUp({
+      const { data: staffData, error: staffError } = await supabase.auth.signUp({
         email: 'staff@test.com',
         password: 'staff123',
         options: {
@@ -41,9 +42,9 @@ const Login = () => {
       });
       if (staffError) throw staffError;
 
-      console.log("Test users created successfully");
+      toast.success("Test users created successfully! Please check your email for verification links.");
     } catch (error: any) {
-      console.error("Error creating test users:", error.message);
+      toast.error("Error creating test users: " + error.message);
     }
   };
 
@@ -77,6 +78,7 @@ const Login = () => {
       }
     } catch (error: any) {
       setError(error.message);
+      toast.error("Login failed: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -97,11 +99,11 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="username" className="text-sm font-medium">
-              Username
+              Email
             </label>
             <Input
               id="username"
-              type="text"
+              type="email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

@@ -137,24 +137,6 @@ export type Database = {
         }
         Relationships: []
       }
-      users: {
-        Row: {
-          password: string
-          role: string
-          username: string
-        }
-        Insert: {
-          password: string
-          role: string
-          username: string
-        }
-        Update: {
-          password?: string
-          role?: string
-          username?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
