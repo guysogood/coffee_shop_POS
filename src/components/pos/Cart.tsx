@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, X, ShoppingCart } from "lucide-react";
 
 interface CartItem {
   id: string;
@@ -22,7 +22,8 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center space-y-0 gap-2">
+        <ShoppingCart className="h-5 w-5" />
         <CardTitle>Current Order</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
@@ -32,7 +33,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between gap-2 p-2 border rounded-lg">
+                <div key={item.id} className="flex items-center justify-between gap-2 p-2 border rounded-lg hover:bg-gray-50">
                   <div className="flex-grow">
                     <h4 className="font-medium">{item.name}</h4>
                     <p className="text-sm text-muted-foreground">
@@ -43,7 +44,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))}
                       disabled={item.quantity <= 1}
                     >
                       <Minus className="h-4 w-4" />

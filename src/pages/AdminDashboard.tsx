@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { SalesReport } from "@/components/admin/SalesReport";
 import { StaffManagement } from "@/components/admin/StaffManagement";
-import { LogOut } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
@@ -66,7 +66,10 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="p-4 bg-white shadow">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          </div>
           <Button
             variant="ghost"
             onClick={async () => {
@@ -82,14 +85,25 @@ const AdminDashboard = () => {
       
       <div className="max-w-7xl mx-auto p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="staff">Staff</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Products
+            </TabsTrigger>
+            <TabsTrigger value="staff" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Staff
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview">
-            <SalesReport />
+          <TabsContent value="overview" className="space-y-4">
+            <Card className="p-6">
+              <SalesReport />
+            </Card>
           </TabsContent>
 
           <TabsContent value="products">

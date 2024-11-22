@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Coffee, Cookie, Croissant, CupSoda, Bagel, Candy } from "lucide-react";
 
 interface Product {
   id: string;
@@ -15,6 +16,20 @@ interface Product {
 interface ProductGridProps {
   onAddToCart: (product: Product) => void;
 }
+
+const getProductIcon = (name: string) => {
+  const iconProps = { className: "w-6 h-6 mb-2" };
+  const lowerName = name.toLowerCase();
+  
+  if (lowerName.includes("americano") || lowerName.includes("coffee")) return <Coffee {...iconProps} />;
+  if (lowerName.includes("cookie")) return <Cookie {...iconProps} />;
+  if (lowerName.includes("croissant")) return <Croissant {...iconProps} />;
+  if (lowerName.includes("cappuccino")) return <CupSoda {...iconProps} />;
+  if (lowerName.includes("bagel")) return <Bagel {...iconProps} />;
+  if (lowerName.includes("muffin")) return <Candy {...iconProps} />;
+  
+  return <Coffee {...iconProps} />; // Default icon
+};
 
 export function ProductGrid({ onAddToCart }: ProductGridProps) {
   const { toast } = useToast();
@@ -38,20 +53,21 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {products?.map((product) => (
-        <Card key={product.id} className="flex flex-col">
-          <CardHeader>
+        <Card key={product.id} className="flex flex-col hover:shadow-lg transition-shadow">
+          <CardHeader className="text-center pb-2">
+            {getProductIcon(product.name)}
             <CardTitle className="text-lg">{product.name}</CardTitle>
           </CardHeader>
           <CardContent className="flex-grow">
-            <p className="text-2xl font-bold">${product.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-center text-primary">${product.price.toFixed(2)}</p>
             {product.description && (
-              <p className="text-sm text-muted-foreground mt-2">{product.description}</p>
+              <p className="text-sm text-muted-foreground mt-2 text-center">{product.description}</p>
             )}
-            <p className="text-sm mt-2">Stock: {product.stock}</p>
+            <p className="text-sm mt-2 text-center">Stock: {product.stock}</p>
           </CardContent>
           <CardFooter>
             <Button 
-              className="w-full" 
+              className="w-full bg-primary hover:bg-primary/90"
               onClick={() => {
                 if (product.stock > 0) {
                   onAddToCart(product);
