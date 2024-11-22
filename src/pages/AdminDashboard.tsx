@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { SalesReport } from "@/components/admin/SalesReport";
 import { StaffManagement } from "@/components/admin/StaffManagement";
-import { LogOut, LayoutDashboard, Package, Users } from "lucide-react";
+import { CheckoutPage } from "@/components/shared/CheckoutPage";
+import { LogOut, LayoutDashboard, Package, Users, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
@@ -85,7 +86,7 @@ const AdminDashboard = () => {
       
       <div className="max-w-7xl mx-auto p-4">
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
@@ -97,6 +98,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="staff" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Staff
+            </TabsTrigger>
+            <TabsTrigger value="checkout" className="flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Stock
             </TabsTrigger>
           </TabsList>
 
@@ -112,6 +117,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="staff">
             <StaffManagement />
+          </TabsContent>
+
+          <TabsContent value="checkout">
+            <CheckoutPage />
           </TabsContent>
         </Tabs>
       </div>

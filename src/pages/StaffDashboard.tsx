@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGrid } from "@/components/pos/ProductGrid";
 import { Cart } from "@/components/pos/Cart";
+import { CheckoutPage } from "@/components/shared/CheckoutPage";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LogOut, ShoppingCart, Package } from "lucide-react";
 
-// Make sure CartItem type matches the one in Cart.tsx
 interface CartItem {
   id: string;
   name: string;
@@ -177,18 +178,39 @@ const StaffDashboard = () => {
         </div>
       </div>
       
-      <div className="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <ProductGrid onAddToCart={handleAddToCart} />
-        </div>
-        <div>
-          <Cart
-            items={cartItems}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveItem={handleRemoveItem}
-            onCheckout={handleCheckout}
-          />
-        </div>
+      <div className="max-w-7xl mx-auto p-4">
+        <Tabs defaultValue="pos" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+            <TabsTrigger value="pos" className="flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              POS
+            </TabsTrigger>
+            <TabsTrigger value="stock" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Stock
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pos">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <ProductGrid onAddToCart={handleAddToCart} />
+              </div>
+              <div>
+                <Cart
+                  items={cartItems}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemoveItem={handleRemoveItem}
+                  onCheckout={handleCheckout}
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="stock">
+            <CheckoutPage />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
