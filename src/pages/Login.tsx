@@ -44,7 +44,8 @@ const Login = () => {
 
       toast.success("Test users created successfully! Please check your email for verification links.");
     } catch (error: any) {
-      toast.error("Error creating test users: " + error.message);
+      console.error(error);
+      toast.error("Error creating test users: " + (error.message || "Unknown error occurred"));
     }
   };
 
@@ -77,8 +78,9 @@ const Login = () => {
         }
       }
     } catch (error: any) {
+      console.error(error);
       setError(error.message);
-      toast.error("Login failed: " + error.message);
+      toast.error("Login failed: " + (error.message || "Unknown error occurred"));
     } finally {
       setLoading(false);
     }
