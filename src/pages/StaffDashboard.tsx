@@ -7,11 +7,13 @@ import { Cart } from "@/components/pos/Cart";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
+// Make sure CartItem type matches the one in Cart.tsx
 interface CartItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
+  stock: number;
 }
 
 const StaffDashboard = () => {
