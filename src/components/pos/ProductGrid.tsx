@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Coffee, Cookie, Croissant, CupSoda, Bagel, Candy } from "lucide-react";
+import { Coffee, Cookie, Croissant, CupSoda, Candy, Pizza } from "lucide-react";
 
 interface Product {
   id: string;
@@ -25,7 +25,7 @@ const getProductIcon = (name: string) => {
   if (lowerName.includes("cookie")) return <Cookie {...iconProps} />;
   if (lowerName.includes("croissant")) return <Croissant {...iconProps} />;
   if (lowerName.includes("cappuccino")) return <CupSoda {...iconProps} />;
-  if (lowerName.includes("bagel")) return <Bagel {...iconProps} />;
+  if (lowerName.includes("bagel")) return <Pizza {...iconProps} />; // Changed from Bagel to Pizza
   if (lowerName.includes("muffin")) return <Candy {...iconProps} />;
   
   return <Coffee {...iconProps} />; // Default icon
