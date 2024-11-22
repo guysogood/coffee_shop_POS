@@ -13,6 +13,40 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const createInitialUsers = async () => {
+    try {
+      // Create admin user
+      const { error: adminError } = await supabase.auth.signUp({
+        email: 'admin@test.com',
+        password: 'admin123',
+        options: {
+          data: {
+            full_name: 'Admin User',
+            role: 'admin'
+          }
+        }
+      });
+      if (adminError) throw adminError;
+
+      // Create staff user
+      const { error: staffError } = await supabase.auth.signUp({
+        email: 'staff@test.com',
+        password: 'staff123',
+        options: {
+          data: {
+            full_name: 'Staff User',
+            role: 'staff'
+          }
+        }
+      });
+      if (staffError) throw staffError;
+
+      console.log("Test users created successfully");
+    } catch (error: any) {
+      console.error("Error creating test users:", error.message);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -20,7 +54,7 @@ const Login = () => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: username, // Use username directly as email
+        email: username,
         password,
       });
 
@@ -93,6 +127,17 @@ const Login = () => {
             {loading ? "Loading..." : "Login"}
           </Button>
         </form>
+
+        <div className="pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={createInitialUsers}
+          >
+            Create Test Users
+          </Button>
+        </div>
       </div>
     </div>
   );
