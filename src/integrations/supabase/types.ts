@@ -137,7 +137,7 @@ export type Database = {
         }
         Relationships: []
       }
-      user: {
+      users: {
         Row: {
           password: string
           role: string
