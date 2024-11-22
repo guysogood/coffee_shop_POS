@@ -27,7 +27,6 @@ const Login = () => {
       if (error) throw error;
 
       if (user) {
-        // Get user's role from the profiles table
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
@@ -45,7 +44,6 @@ const Login = () => {
           description: `Welcome back!`,
         });
 
-        // Redirect based on role
         navigate(role === "admin" ? "/admin" : "/pos");
       }
     } catch (error: any) {
