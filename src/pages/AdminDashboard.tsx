@@ -4,7 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { BarChart, DollarSign, Users } from "lucide-react";
+import { ProductManagement } from "@/components/admin/ProductManagement";
+import { SalesReport } from "@/components/admin/SalesReport";
+import { StaffManagement } from "@/components/admin/StaffManagement";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -13,28 +17,38 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          navigate("/login");
+          return;
+        }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
 
-      if (profile?.role !== "admin") {
+        if (profile?.role !== "admin") {
+          toast({
+            variant: "destructive",
+            title: "Access Denied",
+            description: "You don't have permission to access this page.",
+          });
+          navigate("/login");
+        }
+        setLoading(false);
+      } catch (error: any) {
+        console.error("Error in checkAuth:", error);
         toast({
           variant: "destructive",
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
+          title: "Authentication Error",
+          description: error.message,
         });
         navigate("/login");
       }
-      setLoading(false);
     };
 
     checkAuth();
@@ -49,88 +63,41 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 bg-white shadow">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate("/login");
+            }}
           >
+            <LogOut className="h-4 w-4 mr-2" />
             Sign Out
-          </button>
+          </Button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <BarChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">2,350</div>
-              <p className="text-xs text-muted-foreground">+15% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">+2 since last month</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="products" className="w-full">
+      </div>
+      
+      <div className="max-w-7xl mx-auto p-6">
+        <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
           </TabsList>
-          <TabsContent value="products" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Products Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Product management interface will be implemented here.</p>
-              </CardContent>
-            </Card>
+
+          <TabsContent value="overview">
+            <SalesReport />
           </TabsContent>
-          <TabsContent value="staff" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Staff Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Staff management interface will be implemented here.</p>
-              </CardContent>
-            </Card>
+
+          <TabsContent value="products">
+            <ProductManagement />
           </TabsContent>
-          <TabsContent value="orders" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Orders History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Orders history and management interface will be implemented here.</p>
-              </CardContent>
-            </Card>
+
+          <TabsContent value="staff">
+            <StaffManagement />
           </TabsContent>
         </Tabs>
       </div>
