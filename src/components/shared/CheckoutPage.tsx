@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Minus } from "lucide-react";
 
 interface Product {
   id: string;
@@ -17,7 +17,7 @@ interface Product {
 export function CheckoutPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [quantities, setQuantities] = useState<Record<string, string>>({});
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -56,32 +56,25 @@ export function CheckoutPage() {
     },
   });
 
-  const handleQuantityChange = (productId: string, delta: number) => {
-    setQuantities((prev) => {
-      const currentQty = prev[productId] || 0;
-      const product = products?.find((p) => p.id === productId);
-      
-      if (!product) return prev;
-      
-      const newQty = currentQty + delta;
-      if (newQty < 0) return prev;
-      
-      if (delta > 0 && product.stock < newQty) {
-        toast({
-          variant: "destructive",
-          title: "Not enough stock",
-          description: `Only ${product.stock} items available`,
-        });
-        return prev;
-      }
-      
-      return { ...prev, [productId]: newQty };
-    });
+  const handleQuantityChange = (productId: string, value: string) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [productId]: value,
+    }));
   };
 
   const handleUpdateStock = async (product: Product) => {
-    const quantity = quantities[product.id] || 0;
-    if (quantity === 0) return;
+    const quantityStr = quantities[product.id] || "0";
+    const quantity = parseInt(quantityStr);
+    
+    if (isNaN(quantity)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid quantity",
+        description: "Please enter a valid number",
+      });
+      return;
+    }
 
     const newStock = product.stock + quantity;
     if (newStock < 0) {
@@ -113,32 +106,21 @@ export function CheckoutPage() {
                   <span>Current Stock: {product.stock}</span>
                   <span>Price: ${product.price.toFixed(2)}</span>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleQuantityChange(product.id, -1)}
+                <div className="space-y-2">
+                  <Input
+                    type="number"
+                    value={quantities[product.id] || ""}
+                    onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                    placeholder="Enter quantity"
+                  />
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleUpdateStock(product)}
+                    disabled={!quantities[product.id]}
                   >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-12 text-center">
-                    {quantities[product.id] || 0}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleQuantityChange(product.id, 1)}
-                  >
-                    <Plus className="h-4 w-4" />
+                    Update Stock
                   </Button>
                 </div>
-                <Button 
-                  className="w-full"
-                  onClick={() => handleUpdateStock(product)}
-                  disabled={!quantities[product.id]}
-                >
-                  Update Stock
-                </Button>
               </div>
             </CardContent>
           </Card>
