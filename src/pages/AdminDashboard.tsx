@@ -8,7 +8,8 @@ import { ProductManagement } from "@/components/admin/ProductManagement";
 import { SalesReport } from "@/components/admin/SalesReport";
 import { StaffManagement } from "@/components/admin/StaffManagement";
 import { POSSystem } from "@/components/shared/POSSystem";
-import { LogOut, LayoutDashboard, Package, Users, ShoppingCart } from "lucide-react";
+import { OrderHistory } from "@/components/shared/OrderHistory";
+import { LogOut, LayoutDashboard, Package, Users, ShoppingCart, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
@@ -86,7 +87,7 @@ const AdminDashboard = () => {
       
       <div className="max-w-7xl mx-auto p-4">
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
+          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
@@ -98,6 +99,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="staff" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Staff
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Orders
             </TabsTrigger>
             <TabsTrigger value="pos" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
@@ -117,6 +122,12 @@ const AdminDashboard = () => {
 
           <TabsContent value="staff">
             <StaffManagement />
+          </TabsContent>
+
+          <TabsContent value="orders">
+            <Card className="p-4">
+              <OrderHistory />
+            </Card>
           </TabsContent>
 
           <TabsContent value="pos">

@@ -5,6 +5,9 @@ import { Minus, Plus, X, ShoppingCart } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 interface CartItem {
   id: string;
@@ -22,12 +25,12 @@ interface CartProps {
 }
 
 export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) {
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const handleUpdateQuantity = async (item: CartItem, newQuantity: number) => {
-    // Check if we have enough stock
     const { data: productData, error } = await supabase
       .from("products")
       .select("stock")
@@ -55,6 +58,61 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
     onUpdateQuantity(item.id, newQuantity);
   };
 
+  const handleCheckout = async () => {
+    // Create order with selected payment method
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to checkout",
+      });
+      return;
+    }
+
+    try {
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          staff_id: user.id,
+          total_amount: total,
+          status: "completed",
+          payment_method: paymentMethod,
+          payment_status: "completed"
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      const orderItems = items.map((item) => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price_at_time: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      await queryClient.invalidateQueries({ queryKey: ["orders-history"] });
+      onCheckout();
+      toast({
+        title: "Order Complete",
+        description: "The order has been successfully processed.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Checkout Failed",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center space-y-0 gap-2">
@@ -62,7 +120,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
         <CardTitle>Current Order</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
-        <ScrollArea className="h-[calc(100vh-300px)]">
+        <ScrollArea className="h-[calc(100vh-400px)]">
           {items.length === 0 ? (
             <p className="text-muted-foreground text-center">No items in cart</p>
           ) : (
@@ -106,6 +164,32 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
         </ScrollArea>
       </CardContent>
       <CardFooter className="flex flex-col gap-4 border-t pt-4">
+        <div className="w-full space-y-4">
+          <RadioGroup
+            value={paymentMethod}
+            onValueChange={(value: "cash" | "card") => setPaymentMethod(value)}
+            className="grid grid-cols-2 gap-4"
+          >
+            <div>
+              <RadioGroupItem value="cash" id="cash" className="peer sr-only" />
+              <Label
+                htmlFor="cash"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              >
+                Cash
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="card" id="card" className="peer sr-only" />
+              <Label
+                htmlFor="card"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              >
+                Card
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
         <div className="flex justify-between w-full text-lg font-bold">
           <span>Total</span>
           <span>${total.toFixed(2)}</span>
@@ -114,9 +198,9 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
           className="w-full" 
           size="lg"
           disabled={items.length === 0}
-          onClick={onCheckout}
+          onClick={handleCheckout}
         >
-          Checkout
+          Checkout with {paymentMethod}
         </Button>
       </CardFooter>
     </Card>

@@ -2,70 +2,42 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProductGrid } from "@/components/pos/ProductGrid";
-import { Cart } from "@/components/pos/Cart";
-import { CheckoutPage } from "@/components/shared/CheckoutPage";
+import { POSSystem } from "@/components/shared/POSSystem";
+import { OrderHistory } from "@/components/shared/OrderHistory";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, ShoppingCart, Package } from "lucide-react";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  stock: number;
-}
+import { LogOut, ShoppingCart, History } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 const StaffDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log("Checking auth...");
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.error("Auth error:", userError);
-          throw userError;
-        }
-
-        console.log("Current user:", user);
+        const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-          console.log("No user found, redirecting to login");
           navigate("/login");
           return;
         }
 
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .single();
 
-        if (profileError) {
-          console.error("Profile error:", profileError);
-          throw profileError;
-        }
-
-        console.log("User profile:", profile);
-
         if (profile?.role !== "staff") {
-          console.log("User is not staff, redirecting");
           toast({
             variant: "destructive",
             title: "Access Denied",
             description: "You don't have permission to access this page.",
           });
           navigate("/login");
-          return;
         }
-
         setIsLoading(false);
       } catch (error: any) {
         console.error("Error in checkAuth:", error);
@@ -80,81 +52,6 @@ const StaffDashboard = () => {
 
     checkAuth();
   }, [navigate, toast]);
-
-  const handleAddToCart = (product: any) => {
-    setCartItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        return currentItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...currentItems, { ...product, quantity: 1 }];
-    });
-  };
-
-  const handleUpdateQuantity = (id: string, quantity: number) => {
-    setCartItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const handleRemoveItem = (id: string) => {
-    setCartItems((currentItems) =>
-      currentItems.filter((item) => item.id !== id)
-    );
-  };
-
-  const handleCheckout = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          staff_id: user.id,
-          total_amount: cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-          status: "completed"
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Create order items
-      const orderItems = cartItems.map((item) => ({
-        order_id: order.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        price_at_time: item.price
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      // Clear cart and show success message
-      setCartItems([]);
-      toast({
-        title: "Order Complete",
-        description: "The order has been successfully processed.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Checkout Failed",
-        description: error.message,
-      });
-    }
-  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -185,30 +82,20 @@ const StaffDashboard = () => {
               <ShoppingCart className="h-4 w-4" />
               POS
             </TabsTrigger>
-            <TabsTrigger value="stock" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Stock
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Orders
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pos">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <ProductGrid onAddToCart={handleAddToCart} />
-              </div>
-              <div>
-                <Cart
-                  items={cartItems}
-                  onUpdateQuantity={handleUpdateQuantity}
-                  onRemoveItem={handleRemoveItem}
-                  onCheckout={handleCheckout}
-                />
-              </div>
-            </div>
+            <POSSystem />
           </TabsContent>
 
-          <TabsContent value="stock">
-            <CheckoutPage />
+          <TabsContent value="orders">
+            <Card className="p-4">
+              <OrderHistory />
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
