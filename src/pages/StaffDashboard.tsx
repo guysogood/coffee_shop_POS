@@ -18,27 +18,58 @@ const StaffDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+      try {
+        console.log("Checking auth...");
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error("Auth error:", userError);
+          throw userError;
+        }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+        console.log("Current user:", user);
+        
+        if (!user) {
+          console.log("No user found, redirecting to login");
+          navigate("/login");
+          return;
+        }
 
-      if (profile?.role !== "staff") {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile error:", profileError);
+          throw profileError;
+        }
+
+        console.log("User profile:", profile);
+
+        if (profile?.role !== "staff") {
+          console.log("User is not staff, redirecting");
+          toast({
+            variant: "destructive",
+            title: "Access Denied",
+            description: "You don't have permission to access this page.",
+          });
+          navigate("/login");
+          return;
+        }
+
+        setIsLoading(false);
+      } catch (error: any) {
+        console.error("Error in checkAuth:", error);
         toast({
           variant: "destructive",
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
+          title: "Authentication Error",
+          description: error.message,
         });
         navigate("/login");
       }
@@ -122,6 +153,10 @@ const StaffDashboard = () => {
     }
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-4 bg-white shadow">
@@ -129,8 +164,8 @@ const StaffDashboard = () => {
           <h1 className="text-2xl font-bold">POS System</h1>
           <Button
             variant="ghost"
-            onClick={() => {
-              supabase.auth.signOut();
+            onClick={async () => {
+              await supabase.auth.signOut();
               navigate("/login");
             }}
           >
