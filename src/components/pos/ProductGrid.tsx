@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +33,7 @@ const getProductIcon = (name: string) => {
 
 export function ProductGrid({ onAddToCart }: ProductGridProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { data: products, isLoading, error } = useQuery({
     queryKey: ["products"],
@@ -55,6 +56,22 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
     },
   });
 
+  const handleAddToCart = async (product: Product) => {
+    if (product.stock > 0) {
+      onAddToCart(product);
+      toast({
+        title: "Added to cart",
+        description: `${product.name} added to cart`,
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Out of stock",
+        description: `${product.name} is currently out of stock`,
+      });
+    }
+  };
+
   if (isLoading) return <div className="text-center">Loading products...</div>;
   if (error) return <div className="text-center text-red-500">Error loading products</div>;
 
@@ -76,21 +93,7 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
           <CardFooter>
             <Button 
               className="w-full bg-primary hover:bg-primary/90"
-              onClick={() => {
-                if (product.stock > 0) {
-                  onAddToCart(product);
-                  toast({
-                    title: "Added to cart",
-                    description: `${product.name} added to cart`,
-                  });
-                } else {
-                  toast({
-                    variant: "destructive",
-                    title: "Out of stock",
-                    description: `${product.name} is currently out of stock`,
-                  });
-                }
-              }}
+              onClick={() => handleAddToCart(product)}
               disabled={product.stock === 0}
             >
               Add to Cart

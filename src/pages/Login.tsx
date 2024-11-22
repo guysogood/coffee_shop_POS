@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Coffee, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ const Login = () => {
 
   const createInitialUsers = async () => {
     try {
-      // Create admin user
       const { data: adminData, error: adminError } = await supabase.auth.signUp({
         email: 'admin@test.com',
         password: 'admin123',
@@ -29,7 +29,6 @@ const Login = () => {
       });
       if (adminError) throw adminError;
 
-      // Create staff user
       const { data: staffData, error: staffError } = await supabase.auth.signUp({
         email: 'staff@test.com',
         password: 'staff123',
@@ -88,61 +87,77 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">Login</h1>
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-2 text-center">
+          <div className="flex justify-center">
+            <Coffee className="h-12 w-12 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">Welcome Back</CardTitle>
+          <CardDescription>Sign in to your account to continue</CardDescription>
+        </CardHeader>
         
-        {error && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium">
-              Email
-            </label>
-            <Input
-              id="username"
-              type="email"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Login"}
-          </Button>
-        </form>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="username" className="text-sm font-medium">
+                Email
+              </label>
+              <Input
+                id="username"
+                type="email"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                "Loading..."
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </>
+              )}
+            </Button>
+          </form>
 
-        <div className="pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={createInitialUsers}
-          >
-            Create Test Users
-          </Button>
-        </div>
-      </div>
+          <div className="pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={createInitialUsers}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Create Test Users
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

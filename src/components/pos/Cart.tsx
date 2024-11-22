@@ -2,12 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Minus, Plus, X, ShoppingCart } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CartItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
+  stock: number;
 }
 
 interface CartProps {
@@ -19,6 +23,37 @@ interface CartProps {
 
 export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleUpdateQuantity = async (item: CartItem, newQuantity: number) => {
+    // Check if we have enough stock
+    const { data: productData, error } = await supabase
+      .from("products")
+      .select("stock")
+      .eq("id", item.id)
+      .single();
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not check product stock",
+      });
+      return;
+    }
+
+    if (newQuantity > productData.stock) {
+      toast({
+        variant: "destructive",
+        title: "Not enough stock",
+        description: `Only ${productData.stock} items available`,
+      });
+      return;
+    }
+
+    onUpdateQuantity(item.id, newQuantity);
+  };
 
   return (
     <Card className="h-full flex flex-col">
@@ -44,7 +79,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                      onClick={() => handleUpdateQuantity(item, Math.max(0, item.quantity - 1))}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -52,7 +87,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
