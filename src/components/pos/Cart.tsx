@@ -130,7 +130,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                   <div className="flex-grow">
                     <h4 className="font-medium">{item.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      ฿{(item.price * item.quantity).toFixed(0)}
+                      ${(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
         </div>
         <div className="flex justify-between w-full text-lg font-bold">
           <span>Total</span>
-          <span>฿{total.toFixed(0)}</span>
+          <span>${total.toFixed(2)}</span>
         </div>
         <Button 
           className="w-full" 

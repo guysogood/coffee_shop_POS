@@ -44,14 +44,8 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
         .order("name");
       
       if (error) throw error;
-      // Convert prices to Thai Baht (approximate rate: 1 USD = 35 THB)
-      const productsInTHB = data.map(product => ({
-        ...product,
-        price: Math.round(product.price * 35 * 0.7) // Converting to THB and reducing by 30%
-      }));
-      
       // Remove duplicates based on product name
-      const uniqueProducts = productsInTHB.reduce((acc: Product[], current) => {
+      const uniqueProducts = data.reduce((acc: Product[], current) => {
         const exists = acc.find(item => item.name === current.name);
         if (!exists) {
           acc.push(current);
@@ -90,7 +84,7 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
             <CardTitle className="text-lg">{product.name}</CardTitle>
           </CardHeader>
           <CardContent className="flex-grow">
-            <p className="text-2xl font-bold text-center text-primary">฿{product.price}</p>
+            <p className="text-2xl font-bold text-center text-primary">${product.price.toFixed(2)}</p>
             {product.description && (
               <p className="text-sm text-muted-foreground mt-2 text-center">{product.description}</p>
             )}
