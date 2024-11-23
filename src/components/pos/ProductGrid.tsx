@@ -44,7 +44,6 @@ export function ProductGrid({ onAddToCart }: ProductGridProps) {
         .order("name");
       
       if (error) throw error;
-      // Remove duplicates based on product name
       const uniqueProducts = data.reduce((acc: Product[], current) => {
         const exists = acc.find(item => item.name === current.name);
         if (!exists) {
