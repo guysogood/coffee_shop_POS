@@ -131,6 +131,18 @@ export function ProductManagement() {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
+      // First, delete all related order items
+      const { error: orderItemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("product_id", id);
+
+      if (orderItemsError) {
+        console.error("Error deleting order items:", orderItemsError);
+        throw orderItemsError;
+      }
+
+      // Then delete the product
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
     },
@@ -142,10 +154,11 @@ export function ProductManagement() {
       });
     },
     onError: (error) => {
+      console.error("Error in delete mutation:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: "Failed to delete product. Please try again.",
       });
     },
   });
