@@ -67,7 +67,7 @@ export function OrderHistory() {
                 <Badge
                   variant={
                     order.payment_status === "completed"
-                      ? "success"
+                      ? "secondary"
                       : order.payment_status === "failed"
                       ? "destructive"
                       : "default"
