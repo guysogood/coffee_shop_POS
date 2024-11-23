@@ -1,16 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  stock: number;
-}
+import type { Product, Category } from "@/types/schema";
 
 interface ProductCardProps {
-  product: Product;
+  product: Product & { categories?: Category };
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
 }
@@ -22,6 +16,11 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
         <div>
           <h3 className="font-semibold">{product.name}</h3>
           <p className="text-sm text-muted-foreground">{product.description}</p>
+          {product.categories && (
+            <Badge variant="secondary" className="mt-1">
+              {product.categories.name}
+            </Badge>
+          )}
         </div>
         <div className="flex space-x-2">
           <Button variant="ghost" size="icon" onClick={() => onEdit(product)}>

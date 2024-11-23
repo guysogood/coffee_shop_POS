@@ -13,30 +13,49 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { ProductForm } from "./product/ProductForm";
 import { ProductCard } from "./product/ProductCard";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  stock: number;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { Product, Category } from "@/types/schema";
 
 export function ProductManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products"],
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("products")
+        .from("categories")
         .select("*")
         .order("name");
       if (error) throw error;
-      return data as Product[];
+      return data as Category[];
+    },
+  });
+
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products", selectedCategory],
+    queryFn: async () => {
+      let query = supabase
+        .from("products")
+        .select(`
+          *,
+          categories (
+            id,
+            name
+          )
+        `)
+        .order("name");
+
+      if (selectedCategory !== "all") {
+        query = query.eq("category_id", selectedCategory);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as (Product & { categories: Category })[];
     },
   });
 
@@ -141,7 +160,22 @@ export function ProductManagement() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Products</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold">Products</h2>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories?.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -183,6 +217,7 @@ export function ProductManagement() {
                 description: editingProduct.description || "",
                 price: editingProduct.price.toString(),
                 stock: editingProduct.stock.toString(),
+                category_id: editingProduct.category_id || "",
               }}
               onSubmit={handleSubmit}
               submitLabel="Update Product"

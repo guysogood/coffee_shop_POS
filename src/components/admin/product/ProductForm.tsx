@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Category } from "@/types/schema";
 
 interface ProductFormData {
   name: string;
   description: string;
   price: string;
   stock: string;
+  category_id: string;
 }
 
 interface ProductFormProps {
@@ -24,8 +29,21 @@ export function ProductForm({ initialData, onSubmit, submitLabel }: ProductFormP
       description: "",
       price: "",
       stock: "",
+      category_id: "",
     }
   );
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data as Category[];
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +68,24 @@ export function ProductForm({ initialData, onSubmit, submitLabel }: ProductFormP
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
+      </div>
+      <div>
+        <Label htmlFor="category">Category</Label>
+        <Select
+          value={formData.category_id}
+          onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories?.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="price">Price</Label>
