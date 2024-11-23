@@ -68,44 +68,50 @@ export function useProductMutations() {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
-      // First, delete all related order items
-      const { error: orderItemsError } = await supabase
-        .from("order_items")
+      const { error } = await supabase
+        .from("products")
         .delete()
-        .eq("product_id", id);
-
-      if (orderItemsError) {
-        console.error("Error deleting order items:", orderItemsError);
-        throw orderItemsError;
+        .eq("id", id);
+      
+      if (error) {
+        console.error("Error deleting product:", error);
+        throw error;
       }
-
-      // Then delete the product
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) throw error;
       
       return id;
     },
-    onSuccess: (deletedId) => {
-      // Immediately update the cache to remove the deleted product
-      queryClient.setQueryData(["products"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return oldData.filter((product: Product) => product.id !== deletedId);
+    onMutate: async (deletedId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["products"] });
+
+      // Snapshot the previous value
+      const previousProducts = queryClient.getQueryData(["products"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["products"], (old: any) => {
+        return old?.filter((product: Product) => product.id !== deletedId);
       });
-      
-      // Then invalidate to refetch fresh data
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      
-      toast({
-        title: "Product deleted",
-        description: "The product has been deleted successfully.",
-      });
+
+      // Return a context object with the snapshotted value
+      return { previousProducts };
     },
-    onError: (error) => {
-      console.error("Error in delete mutation:", error);
+    onError: (error: Error, _variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(["products"], context?.previousProducts);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete product. Please try again.",
+        description: error.message,
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure cache synchronization
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Product deleted",
+        description: "The product has been deleted successfully.",
       });
     },
   });
