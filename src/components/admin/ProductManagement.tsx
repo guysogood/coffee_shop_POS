@@ -27,14 +27,17 @@ export function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const { data: categories } = useQuery({
+  const { data: categories, isError: isCategoriesError } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
         .select("*")
         .order("name");
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return [];
+      }
       return data as Category[];
     },
   });
@@ -42,25 +45,26 @@ export function ProductManagement() {
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", selectedCategory],
     queryFn: async () => {
-      let query = supabase
-        .from("products")
-        .select(`
-          *,
-          categories (
-            id,
-            name,
-            created_at
-          )
-        `)
-        .order("name");
+      try {
+        let query = supabase
+          .from("products")
+          .select("*, categories(id, name, created_at)")
+          .order("name");
 
-      if (selectedCategory !== "all") {
-        query = query.eq("category_id", selectedCategory);
+        if (selectedCategory !== "all") {
+          query = query.eq("category_id", selectedCategory);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+          console.error("Error fetching products:", error);
+          return [];
+        }
+        return data as unknown as ProductWithCategory[];
+      } catch (error) {
+        console.error("Error in products query:", error);
+        return [];
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as unknown as ProductWithCategory[];
     },
   });
 
@@ -169,19 +173,21 @@ export function ProductManagement() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold">Products</h2>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories?.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!isCategoriesError && categories && categories.length > 0 && (
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories?.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
