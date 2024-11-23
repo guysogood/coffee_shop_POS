@@ -16,6 +16,10 @@ import { ProductCard } from "./product/ProductCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Product, Category } from "@/types/schema";
 
+interface ProductWithCategory extends Product {
+  categories: Category | null;
+}
+
 export function ProductManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -44,7 +48,8 @@ export function ProductManagement() {
           *,
           categories (
             id,
-            name
+            name,
+            created_at
           )
         `)
         .order("name");
@@ -55,7 +60,7 @@ export function ProductManagement() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as (Product & { categories: Category })[];
+      return data as unknown as ProductWithCategory[];
     },
   });
 
@@ -95,6 +100,7 @@ export function ProductManagement() {
           description: product.description,
           price: product.price,
           stock: product.stock,
+          category_id: product.category_id,
         })
         .eq("id", product.id)
         .select()
@@ -146,6 +152,7 @@ export function ProductManagement() {
       description: formData.description || null,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
+      category_id: formData.category_id,
     };
 
     if (editingProduct) {
