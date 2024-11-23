@@ -42,7 +42,7 @@ export function POSSystem() {
   };
 
   const handleCheckout = async () => {
-    // Placeholder for checkout logic
+    setCartItems([]); // Reset cart items after checkout
   };
 
   return (
