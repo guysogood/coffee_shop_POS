@@ -1,4 +1,4 @@
-# Welcome to your Coffee Shop POS project
+# Welcome to Coffee Shop POS project
 
 ## Project info
 
